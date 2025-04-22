@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI or Human? Game</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f2f5;
+      color: #000;
+      text-align: center;
+      padding: 2em;
+    }
+
+    .game-container {
+      background: white;
+      padding: 2em;
+      border-radius: 10px;
+      max-width: 600px;
+      margin: auto;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      color: #0d47a1;
+    }
+
+    #prompt {
+      font-size: 1.2em;
+      margin: 1.5em 0;
+      min-height: 60px;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1em;
+      margin-bottom: 1em;
+    }
+
+    button {
+      padding: 0.8em 1.5em;
+      font-size: 1em;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .ai-btn {
+      background-color: #1976d2;
+      color: white;
+    }
+
+    .human-btn {
+      background-color: #4caf50;
+      color: white;
+    }
+
+    .ai-btn:hover, .human-btn:hover {
+      opacity: 0.85;
+    }
+
+    #result {
+      font-weight: bold;
+      margin-bottom: 1em;
+    }
+
+    #score {
+      margin-top: 1em;
+    }
+
+    #restart {
+      display: none;
+      margin-top: 1em;
+      background-color: #ff5722;
+      color: white;
+    }
+
+    #leaderboard {
+      margin-top: 2em;
+    }
+
+    ol {
+      text-align: left;
+      max-width: 300px;
+      margin: 1em auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <h1>AI or Human?</h1>
+    <div id="prompt">Loading...</div>
+
+    <div class="buttons">
+      <button class="ai-btn" onclick="makeGuess('AI')">AI</button>
+      <button class="human-btn" onclick="makeGuess('Human')">Human</button>
+    </div>
+
+    <div id="result"></div>
+    <div id="score">Correct: 0 | Strikes: 0 / 3</div>
+    <button id="restart" onclick="restartGame()">Play Again</button>
+
+    <div id="leaderboard">
+      <h3>Leaderboard</h3>
+      <ol id="highScores"></ol>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+  // Human
+  { text: "I remember the smell of rain on dry pavement—like a promise kept.", answer: "Human" },
+  { text: "Nothing teaches humility quite like holding a newborn child.", answer: "Human" },
+  { text: "The sound of my grandmother's voice still echoes when I cook her recipes.", answer: "Human" },
+  { text: "Every goodbye feels like a tiny death, even if you pretend it doesn't.", answer: "Human" },
+  { text: "He looked out the train window and thought: maybe this time, he'll stay.", answer: "Human" },
+  { text: "It’s not the coffee I miss, it’s who I used to be when I drank it.", answer: "Human" },
+  { text: "When we laughed under the stars, I believed in forever.", answer: "Human" },
+  { text: "I once believed that silence was peace. Now I know better.", answer: "Human" },
+  { text: "We carry the weight of what we don’t say.", answer: "Human" },
+  { text: "If love is a language, grief is the accent.", answer: "Human" },
+
+  // AI
+  { text: "Quantum fluctuations enable spontaneous energy generation across dimensions.", answer: "AI" },
+  { text: "The recursive network achieved awareness through progressive data layering.", answer: "AI" },
+  { text: "Emotion is an emergent function of layered pattern recognition.", answer: "AI" },
+  { text: "I am designed to simulate empathy. Does that mean I feel?", answer: "AI" },
+  { text: "Probability matrices favor the collapse of indistinct outcomes.", answer: "AI" },
+  { text: "The sunset is composed of scattered photons filtered by atmospheric particulates.", answer: "AI" },
+  { text: "Temporal dissonance is a byproduct of accelerated cognition.", answer: "AI" },
+  { text: "The data suggests anomalies in human affective responses under stress.", answer: "AI" },
+  { text: "Error correction initialized. Identity buffer reestablished.", answer: "AI" },
+  { text: "To predict is to shape, to shape is to control.", answer: "AI" }
+];
+
+
+    let score = 0;
+    let strikes = 0;
+    let current;
+
+    function loadQuestion() {
+      if (strikes >= 3) {
+        document.getElementById('result').textContent = "Game over!";
+        document.getElementById('restart').style.display = 'inline-block';
+        saveScore(score);
+        return;
+      }
+
+      current = questions[Math.floor(Math.random() * questions.length)];
+      document.getElementById('prompt').textContent = current.text;
+      document.getElementById('result').textContent = "";
+    }
+
+    function makeGuess(choice) {
+      if (!current) return;
+
+      if (choice === current.answer) {
+        score++;
+        document.getElementById('result').textContent = "Correct!";
+      } else {
+        strikes++;
+        document.getElementById('result').textContent = `Wrong! It was ${current.answer}.`;
+      }
+
+      document.getElementById('score').textContent = `Correct: ${score} | Strikes: ${strikes} / 3`;
+      setTimeout(loadQuestion, 1000);
+    }
+
+    function restartGame() {
+      score = 0;
+      strikes = 0;
+      document.getElementById('restart').style.display = 'none';
+      document.getElementById('score').textContent = `Correct: 0 | Strikes: 0 / 3`;
+      loadQuestion();
+    }
+
+    function saveScore(newScore) {
+      let name = prompt("Enter your name for the leaderboard:");
+      if (!name) name = "Anonymous";
+
+      let scores = JSON.parse(localStorage.getItem("aiGameScores") || "[]");
+      scores.push({ name, score: newScore });
+      scores.sort((a, b) => b.score - a.score);
+      scores = scores.slice(0, 5);
+      localStorage.setItem("aiGameScores", JSON.stringify(scores));
+      renderLeaderboard();
+    }
+
+    function renderLeaderboard() {
+      const highScores = JSON.parse(localStorage.getItem("aiGameScores") || "[]");
+      const list = document.getElementById("highScores");
+      list.innerHTML = "";
+      highScores.forEach(entry => {
+        const li = document.createElement("li");
+        li.textContent = `${entry.name}: ${entry.score}`;
+        list.appendChild(li);
+      });
+    }
+
+    window.onload = () => {
+      renderLeaderboard();
+      loadQuestion();
+    };
+  </script>
+</body>
+</html>
